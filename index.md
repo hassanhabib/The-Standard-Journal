@@ -17,13 +17,13 @@
 
 ### Tests/Services/Validations
 * [TheoryData in theory xUnit test cases](#theorydata-in-theory-xunit-test-cases)
-* [It.IsAny\<T> in exceptions tests](#it-isany-in-exceptions-tests)
+* [It.IsAny\<T> in exceptions tests](#itisanyt-in-exceptions-tests)
 
 # **14 August 2020**
 ## **Summary**
 * [Catch HttpResponseUrlNotFoundException](#catch-httpresponseurlnotfoundexception)
 * [TheoryData in theory xUnit test cases](#theorydata-in-theory-xunit-test-cases)
-* [It.IsAny\<T> in exceptions tests](#it-isany-in-exceptions-tests) 
+* [It.IsAny\<T> in exceptions tests](#itisanyt-in-exceptions-tests) 
 
 ## **Catch HttpResponseUrlNotFoundException**
 [RESTFulSense](https://www.nuget.org/packages/RESTFulSense/#) now includes `HttpResponseUrlNotFoundException` which provides a more meaningful name than the generic HttpResponseNotFoundException. Services that call an API using RESTFulSense should account for this exception and log critical. 
