@@ -92,7 +92,7 @@ public static IEnumerable<object[]> InvalidStringCases()
 }
 ```
 
-## **It.IsAny<T> in exceptions tests**
+## **It.IsAny\<T> in exceptions tests**
 In the set up and verify statements of the service mock, instead of passing an input, `It.IsAny<T>` should be used as we want to focus on validating an exception was thrown regardless of how the input parameter came into play.
 
 *`StudentServiceTests.Exceptions.cs`*
