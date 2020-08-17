@@ -1,4 +1,4 @@
-# The-Standard-Journal
+# The Standard Journal
 
 # **Contents**
 ### Api/Controllers
