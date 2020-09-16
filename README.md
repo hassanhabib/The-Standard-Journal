@@ -16,10 +16,150 @@
 
 ### Services/Exceptions
 * [HttpResponseUrlNotFoundException](#catch-httpresponseurlnotfoundexception)
+* [DbUpdateConcurrencyException - Validation Exception](#dbupdateconcurrencyexception---validation-exception)
+* [DependencyValidationException](#dependencyvalidationexception)
 
 ### Tests/Services/Validations
 * [TheoryData in theory xUnit test cases](#theorydata-in-theory-xunit-test-cases)
 * [It.IsAny\<T> in exceptions tests](#itisanyt-in-exceptions-tests)
+
+# **14 September 2020**
+## Summary
+
+* [DbUpdateConcurrencyException - Validation Exception](#dbupdateconcurrencyexception---validation-exception)
+* [DependencyValidationException](#dependencyvalidationexception)
+
+
+## **DbUpdateConcurrencyException - Validation Exception**
+DbUpdateConcurrencyException is to be treated as a validation exception instead of dependency exception. 
+
+## **DependencyValidationException**
+A ***DependencyValidationException*** wraps validation exceptions from a dependency instead of wrapping them as a dependency exception. Processing and Orchestration services would handle validation exceptions that are propagated from its lower level services as below: 
+
+### **Processing services**
+
+*`EntityProcessingServiceTests.Exceptions.cs`*
+```cs
+[Fact]
+public async Task ShouldThrowDependencyValidationExceptionOnAddIfValidationExceptionOccursAndLogItAsync()
+{
+    // given
+    Entity someEntity = CreateRandomEntity();
+    var innerValidationException = new Exception();
+    var entityValidationException = new EntityValidationException(innerValidationException);
+
+    var expectedEntityProcessingDependencyValidationException =
+        new EntityProcessingDependencyValidationException(innerValidationException);
+    ...
+}
+```
+
+*`EntityProcessingService.Exceptions.cs`*
+
+`TryCatch block`
+```cs
+catch (EntityValidationException entityValidationException)
+{
+    throw CreateAndLogDependencyValidationException(entityValidationException);
+}
+```
+```cs
+private EntityProcessingDependencyValidationException CreateAndLogDependencyValidationException(
+    Exception exception)
+{
+    var entityProcessingDependencyValidationException =
+        new EntityProcessingDependencyValidationException(exception.InnerException);
+
+    this.loggingBroker.LogError(entityProcessingDependencyValidationException);
+
+    return entityProcessingDependencyValidationException;
+}
+```
+
+### **Orchestration services**
+*`EntityOrhcestrationServiceTests.cs`*
+
+```cs
+public static TheoryData ProcessingValidationExceptions()
+{
+    var someException = new Exception();
+
+    return new TheoryData<Exception>
+    {
+        new EntityProcessingValidationException(someException),
+        new EntityProcessingDependencyValidationException(someException)
+    };
+}
+```
+
+*`EntityOrchestrationService.Exceptions.cs`*
+```cs
+[Theory]
+[MemberData(nameof(ProcessingValidationExceptions))]
+public async Task ShouldThrowDependencyValidationExceptionOnRemoveIfValidationExceptionOccursAndLogItAsync(
+    Exception processingValidationException)
+{
+    // given
+    Guid someEntityId = Guid.NewGuid();
+
+    var expectedEntityOrchestrationDependencyValidationException =
+        new EntityOrchestrationDependencyValidationException(
+            processingValidationException.InnerException);
+
+    this.entityProcessingServiceMock.Setup(service =>
+        service.RemoveEntityByIdAsync(It.IsAny<Guid>()))
+            .ThrowsAsync(processingValidationException);
+    ...
+}
+
+```
+*`EntityOrchestrationService.Exceptions.cs`*
+
+`TryCatch block`
+```cs
+catch (EntityProcessingValidationException entityProcessingValidationException)
+{
+    throw CreateAndLogDependencyValidationException(entityProcessingValidationException);
+}
+catch (EntityProcessingDependencyValidationException entityProcessingDependencyValidationException)
+{
+    throw CreateAndLogDependencyValidationException(entityProcessingDependencyValidationException);
+}
+```
+
+### **Controller**
+*`EntityController.cs`*
+
+`TryCatch block`
+```cs
+catch (EntityOrchestrationValidationException validationException)
+{          
+    string innerMessage = ***
+
+    return BadRequest(innerMessage);
+}
+catch (EntityOrchestrationDependencyValidationException dependencyValidationException)
+    when(dependencyValidationException.InnerException is ***Exception)
+{          
+    string innerMessage = ***
+
+    return Conflict/NotFound/FailedDependency/Locked(innerMessage);
+}
+catch (EntityOrchestrationDependencyValidationException dependencyValidationException))
+{          
+    string innerMessage = ***
+
+    return BadRequest(innerMessage);
+}
+catch (EntityOrchestrationDependencyException dependencyException))
+{          
+    return Problem(dependencyException.Message);
+}
+catch (EntityOrchestrationServiceException serviceException))
+{          
+    return Problem(serviceException.Message);
+}
+```
 
 # **14 August 2020**
 ## **Summary**
