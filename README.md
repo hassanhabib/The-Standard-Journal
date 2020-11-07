@@ -383,7 +383,7 @@ For entities with CreatedBy and UpdatedBy, we need to validate that CreatedBy an
 [Fact]
 public async Task ShouldThrowValidationExceptionOnCreateIfCreatedByAndUpdatedByNotSameAndLogItAsync()
 {
-// given
+    // given
     Student randomStudent = CreateRandomStudent();
     Guid differentThanCreatedId = Guid.NewGuid();
     Student invalidStudent = randomStudent;
