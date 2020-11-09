@@ -5,8 +5,12 @@
 
 * [Web Api Controllers - no attributes in parameters](#web-api-controllers)
 
-### Services/Validations
 
+### Blazor
+* [Declaration of parameters in Blazor components](#declaration-of-parameters-in-blazor-components)
+
+### Services/Validations
+* [Order of Validation functions](#order-of-validation-functions)
 * [Validating CreatedBy/UpdatedBy in entities](#createdbyupdatedby-validations)
 * [IsDateNotRecent method in validations](#isdatenotrecent-method)
 * [Ordering of Validations](#ordering-of-validations)
@@ -22,6 +26,70 @@
 ### Tests/Services/Validations
 * [TheoryData in theory xUnit test cases](#theorydata-in-theory-xunit-test-cases)
 * [It.IsAny\<T> in exceptions tests](#itisanyt-in-exceptions-tests)
+
+# **6 November 2020**
+## Summary
+* [Declaration of parameters in Blazor components](#declaration-of-parameters-in-blazor-components)
+* [Order of Validation functions](#order-of-validation-functions)
+
+## **Declaration of parameters in Blazor components**
+The properties in a Blazor component that accept an parameter/have a parameter attribute are to be declared at the top before any other declarations.
+
+```cs
+public partial class TemplateCardsComponent : ComponentBase
+{
+    [Parameter]
+    public List<EmailTemplateView> EmailTemplateViews { get; set; }
+
+    public List<CardBase> EmailTemplateCards { get; set; }
+    public List<ButtonBase> EmailTemplateCardButtons { get; set; }
+
+    protected override void OnInitialized()
+    {
+        CreateEmailTemplateCards();
+        CreateEmailTemplateCardButtons();
+    }
+}
+```
+## **Order of Validation functions**
+Validation functions are first to be ordered according to CRUD, then the level of when they are called by other functions. 
+
+For example, a `WorkItemService` would contain the CRUD functions with validations:
+* AddWorkItem
+    * ValidateWorkItemOnAdd
+* RetrieveAllWorkItems
+    * ValidateStorageWorkItems
+* RetrieveWorkItemById
+    * ValidateWorkItemId
+    * ValidateWorkItemExists
+* ModifyWorkItem
+    * ValidateWorkItemOnModify
+    * ValidateStorageWorkItem
+* RemoveWorkItem
+    * ValidateWorkItemId
+    * ValidateWorkItemExists
+
+The ordering within `WorkItemService.Validations` would look like: 
+
+```cs
+ValidateWorkItemOnAdd(WorkItem workItem){
+    ValidateWorkItem(workItem)
+    ValidateWorkItemDates(workItem)
+}
+
+ValidateStorageWorkItems
+ValidateWorkId
+ValidateWorkItemExists
+ValidateWorkItemOnModify
+ValidateStorageWorkItem
+
+// followed by functions called by the above
+ValidateWorkItem
+ValidateWorkItemDates
+
+// followed by other functions called by the above
+// followed by helper functions
+```
 
 # **14 September 2020**
 ## Summary
