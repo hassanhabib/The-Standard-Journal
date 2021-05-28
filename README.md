@@ -497,7 +497,8 @@ public async Task ShouldThrowValidationExceptionOnRegisterIfStudentTypeIsInvalid
 	// given
 	Student randomStudent = CreateRandomStudent();
 	Student inputStudent = randomStudent;
-	inputStudent.Type = GetInvalidStudentType();
+    StudentType invalidStudentType = GetInvalidStudentType();
+	inputStudent.Type = invalidStudentType;
 
 	var invalidStudentException = new InvalidStudentException(
 		parameterName: nameof(Student.Type),
