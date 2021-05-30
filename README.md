@@ -480,11 +480,13 @@ private void ValidateStudentDates(Student student) { ... }
 Let's assume our Student model looks as follows:
 
 ```cs
-public class Student {
-	StudentType Type {get; set;}
+public class Student 
+{
+    StudentType Type { get; set; }
 }
 
-public enum StudentType{
+public enum StudentType
+{
 	FullTime,
 	PartTime
 }
