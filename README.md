@@ -475,11 +475,12 @@ private void ValidateStudentStrings(Student student) { ... }
 private void ValidateStudentDates(Student student) { ... }
 ```
 
-## **Invalid Enum validations**
-
 Let's assume our Student model looks as follows:
 
-```cs
+## **Invalid Enum validations test**
+
+ ```cs
+
 public class Student 
 {
     StudentType Type { get; set; }
@@ -491,8 +492,6 @@ public enum StudentType
 	PartTime
 }
 
-## **Invalid Enum validations test*
- ```csharp
 [Fact]
 public async Task ShouldThrowValidationExceptionOnRegisterIfStudentTypeIsInvalidAndLogItAsync()
 {
