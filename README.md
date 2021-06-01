@@ -474,3 +474,75 @@ private void ValidateStudentId(Student student) { ... }
 private void ValidateStudentStrings(Student student) { ... }
 private void ValidateStudentDates(Student student) { ... }
 ```
+
+Let's assume our Student model looks as follows:
+
+## **Invalid Enum validations test**
+
+ ```cs
+
+public class Student 
+{
+    StudentType Type { get; set; }
+}
+
+public enum StudentType
+{
+	FullTime,
+	PartTime
+}
+
+[Fact]
+public async Task ShouldThrowValidationExceptionOnRegisterIfStudentTypeIsInvalidAndLogItAsync()
+{
+	// given
+	Student randomStudent = CreateRandomStudent();
+	Student inputStudent = randomStudent;
+	StudentType invalidStudentType = GetInvalidStudentType();
+	inputStudent.Type = invalidStudentType;
+
+	var invalidStudentException = new InvalidStudentException(
+		parameterName: nameof(Student.Type),
+		parameterValue: inputStudent.Type);
+
+	var expectedStudentValidationException =
+		new StudentValidationException(invalidStudentException);
+
+	// when
+	ValueTask<Student> registerStudentTask =
+		this.studentService.RegisterStudentAsync(inputStudent);
+
+	// then
+	await Assert.ThrowsAsync<StudentValidationException>(() =>
+		registerStudentTask.AsTask());
+
+	this.loggingBrokerMock.Verify(broker =>
+		broker.LogError(It.Is(
+			SameExceptionAs(expectedStudentValidationException))),
+				Times.Once);
+
+	this.storageBrokerMock.Verify(broker =>
+		broker.InsertStudentAsync(It.IsAny<Student>()),
+			Times.Never);
+
+	this.loggingBrokerMock.VerifyNoOtherCalls();
+	this.dateTimeBrokerMock.VerifyNoOtherCalls();
+	this.storageBrokerMock.VerifyNoOtherCalls();
+}
+
+public static StudentType GetInvalidStudentType()
+{
+	int randomNumber = GetRandomIntegerNumber();
+
+	while(Enum.IsDefined(typeof(StudentType), randomNumber) is true)
+	{
+		randomNumber = GetRandomIntegerNumber();
+	}
+
+	return (StudentType)randomNumber;
+}
+
+public static int GetRandomIntegerNumber() =>
+	new IntRange(min: int.MinValue, max: int.MaaxValue).GetValue();
+
+```
